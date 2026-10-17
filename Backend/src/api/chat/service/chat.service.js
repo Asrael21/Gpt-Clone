@@ -1,7 +1,7 @@
 import db from "../../../../db/db.config.js";
 import { GoogleGenAI } from "@google/genai";
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
 let geminiClient = null;
 if (process.env.GEMINI_API_KEY) {
@@ -87,7 +87,7 @@ const generateAssistantAnswer = async ({ historyRows, question }) => {
     // Attempt fallback with gemini-2.5-flash or direct answer
     try {
       const fallbackChat = geminiClient.chats.create({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.5-flash-lite",
         history: formattedHistory.slice(-4),
       });
       const fallbackResult = await fallbackChat.sendMessage({ message: question });

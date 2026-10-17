@@ -8,7 +8,7 @@ import AuthModal from './Components/AuthModal/AuthModal';
 import { useAuth } from './context/AuthContext';
 import './App.css';
 
-const API_BASE_URL = 'http://localhost:3777/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3777/api' : '/api');
 
 function App() {
   const { user, token, isAuthenticated } = useAuth();

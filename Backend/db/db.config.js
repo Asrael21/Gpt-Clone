@@ -1,10 +1,18 @@
 import mysql from "mysql2/promise";
 
-const db = mysql.createPool({
-    host: process.env.DB_HOST || "localhost",
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-});
+const db = mysql.createPool(
+  process.env.DATABASE_URL || process.env.MYSQL_URL
+    ? (process.env.DATABASE_URL || process.env.MYSQL_URL)
+    : {
+        host: process.env.MYSQLHOST || process.env.DB_HOST || "localhost",
+        user: process.env.MYSQLUSER || process.env.DB_USER,
+        password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
+        database: process.env.MYSQLDATABASE || process.env.DB_DATABASE,
+        port: process.env.MYSQLPORT ? Number(process.env.MYSQLPORT) : (process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306),
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+      }
+);
 
 export default db;
