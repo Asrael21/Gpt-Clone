@@ -15,6 +15,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3777;
 
+let isDbConnected = false;
+
 // Enable CORS
 app.use(
   cors({
@@ -25,9 +27,14 @@ app.use(
 
 app.use(express.json());
 
-// API health route
+// API health route for deployment health checks
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", message: "Server is healthy" });
+  res.json({
+    status: "ok",
+    database: isDbConnected ? "connected" : "disconnected",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Main API routes
@@ -37,7 +44,7 @@ app.use("/api", mainRouter);
 const frontendDist = path.join(__dirname, "../frontend/dist");
 app.use(express.static(frontendDist));
 
-// Catch-all SPA fallback middleware (compatible with Express 4, 5, and Node 20-24)
+// Catch-all SPA fallback middleware
 app.use((req, res, next) => {
   if (req.method !== "GET" || req.path.startsWith("/api")) {
     return next();
@@ -53,22 +60,46 @@ app.use((req, res, next) => {
 // Error handling middleware
 app.use(errorHandler);
 
-async function startServer() {
-  try {
-    const connection = await db.getConnection();
-    console.log("Database connected successfully");
-    connection.release();
+// Attempt database connection and schema initialization
+async function connectAndInitDatabase(retries = 5, delayMs = 3000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const host = process.env.MYSQLHOST || process.env.DB_HOST || "localhost";
+      const user = process.env.MYSQLUSER || process.env.DB_USER || "(not set)";
+      const database = process.env.MYSQLDATABASE || process.env.DB_DATABASE || "(not set)";
+      console.log(`[DB] Attempting connection to MySQL (host: ${host}, user: ${user}, db: ${database}) [attempt ${attempt}/${retries}]...`);
 
-    // Initialize database schema (tables, columns)
-    await initDb();
+      const connection = await db.getConnection();
+      console.log("Database connected successfully!");
+      connection.release();
 
-    app.listen(PORT, (err) => {
-      if (err) throw err;
-      console.log(`Server is running on http://localhost:${PORT}`);
-    });
-  } catch (error) {
-    console.error("Error starting server:", error.message);
+      await initDb();
+      isDbConnected = true;
+      return;
+    } catch (error) {
+      console.error(`[DB] Connection attempt ${attempt} failed:`, error.message);
+      if (attempt < retries) {
+        console.log(`[DB] Retrying in ${delayMs / 1000}s...`);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      } else {
+        console.warn(
+          "\n⚠️ WARNING: Database connection failed after multiple attempts.\n" +
+          "If deploying to Railway, please ensure you have added a MySQL service or configured:\n" +
+          "  - MYSQLHOST (or DB_HOST)\n" +
+          "  - MYSQLUSER (or DB_USER)\n" +
+          "  - MYSQLPASSWORD (or DB_PASSWORD)\n" +
+          "  - MYSQLDATABASE (or DB_DATABASE)\n" +
+          "  - MYSQLPORT (or DB_PORT)\n" +
+          "in your Railway service Variables tab.\n"
+        );
+      }
+    }
   }
 }
 
-startServer();
+// Start HTTP server immediately so Railway container remains healthy and doesn't crash
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server is running and listening on port ${PORT}`);
+  // Connect to database in background
+  connectAndInitDatabase();
+});
