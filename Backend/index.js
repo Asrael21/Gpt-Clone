@@ -2,15 +2,20 @@ import "dotenv/config";
 
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import db from "./db/db.config.js";
 import { initDb } from "./db/initDb.js";
 import { errorHandler } from "./src/middleware/error.handler.js";
 import mainRouter from "./src/api/main.routes.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 const PORT = process.env.PORT || 3777;
 
-// Enable CORS for all origins in development
+// Enable CORS
 app.use(
   cors({
     origin: true,
@@ -25,22 +30,16 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Server is healthy" });
 });
 
-// Main routes
+// Main API routes
 app.use("/api", mainRouter);
-
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Serve frontend static build if it exists
 const frontendDist = path.join(__dirname, "../frontend/dist");
 app.use(express.static(frontendDist));
 
-// Catch-all for React client-side routing (ignoring /api routes)
-app.get("*", (req, res, next) => {
-  if (req.path.startsWith("/api")) {
+// Catch-all SPA fallback middleware (compatible with Express 4, 5, and Node 20-24)
+app.use((req, res, next) => {
+  if (req.method !== "GET" || req.path.startsWith("/api")) {
     return next();
   }
   const indexPath = path.join(frontendDist, "index.html");
