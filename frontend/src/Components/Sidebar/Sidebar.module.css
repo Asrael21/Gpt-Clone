@@ -1,113 +1,333 @@
+.backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 40;
+}
+
 .sidebar {
-    width: 260px;
-    background-color: var(--bg-sidebar);
-    display: flex;
-    flex-direction: column;
-    padding: 12px;
-    border-right: 1px solid var(--border-color);
+  width: 260px;
+  background-color: var(--bg-sidebar);
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border-right: 1px solid var(--border-color);
+  height: 100vh;
+  z-index: 50;
+  flex-shrink: 0;
+  transition: transform 0.25s ease-in-out;
 }
 
 .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 4px 6px;
 }
 
 .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .iconBtn {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-    border-radius: 6px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
 }
 
 .iconBtn:hover {
-    background-color: var(--bg-hover);
-    color: var(--text-primary);
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .nav {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    color: var(--text-primary);
-    text-decoration: none;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  transition: background-color 0.15s;
 }
 
 .item:hover {
-    background-color: var(--bg-hover);
+  background-color: var(--bg-hover);
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin: 4px 4px 8px;
+}
+
+.searchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.searchClearBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.historySection {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.historyTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  padding: 6px 12px 4px;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+  width: 100%;
+}
+
+.historyItem:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.historyIcon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.historyText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .footer {
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.clearBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clearBtn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #f87171;
 }
 
 .user {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .user:hover {
-    background-color: var(--bg-hover);
+  background-color: var(--bg-hover);
 }
 
 .avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background-color: #3b82f6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 600;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  flex-shrink: 0;
 }
 
 .userInfo {
-    display: flex;
-    flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .userName {
-    font-size: 14px;
-    font-weight: 500;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .userPlan {
-    font-size: 12px;
-    color: var(--text-secondary);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.logoutBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.logoutBtn:hover {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.loginCard {
+  background: linear-gradient(135deg, rgba(16, 163, 127, 0.1), rgba(23, 23, 23, 0.8));
+  border: 1px solid rgba(16, 163, 127, 0.2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loginCardText strong {
+  display: block;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.loginCardText p {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.loginCardBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #10a37f;
+  color: #ffffff;
+  border: none;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.loginCardBtn:hover {
+  background-color: #12b78f;
+}
+
+/* Responsive sidebar */
+@media (max-width: 768px) {
+  .backdropActive {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transform: translateX(-100%);
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
 }

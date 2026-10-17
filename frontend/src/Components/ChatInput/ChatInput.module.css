@@ -1,62 +1,170 @@
 .container {
-    padding: 24px;
-    max-width: 800px;
-    margin: 0 auto;
-    width: 100%;
+  padding: 12px 24px 20px;
+  max-width: 840px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .form {
-    position: relative;
-    display: flex;
-    align-items: center;
-    background-color: var(--bg-input);
-    border-radius: 24px;
-    padding: 8px 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-input);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 10px 14px 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.icon {
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-    cursor: pointer;
+.form:focus-within {
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
 }
 
-.input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--text-primary);
-    font-size: 16px;
-    padding: 12px;
-    outline: none;
-    font-family: inherit;
+.inputRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  width: 100%;
 }
 
-.input::placeholder {
-    color: var(--text-secondary);
+.attachBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.attachBtn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 15px;
+  padding: 8px 4px;
+  outline: none;
+  font-family: inherit;
+  resize: none;
+  max-height: 180px;
+  min-height: 24px;
+  line-height: 1.5;
+}
+
+.textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .submitBtn {
-    background-color: var(--text-primary);
-    color: var(--bg-main);
-    border: none;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: opacity 0.2s;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.35);
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: not-allowed;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+}
+
+.submitBtnActive {
+  background-color: #ffffff;
+  color: #000000;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.25);
+}
+
+.submitBtnActive:hover {
+  transform: scale(1.05);
+  background-color: #f0f0f0;
 }
 
 .submitBtn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.submitBtn:hover:not(:disabled) {
-    opacity: 0.8;
+.submitSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  border-top-color: #000000;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.bottomBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pillGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 3px 10px;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pill:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.pillIcon {
+  color: #10a37f;
+}
+
+.disclaimer {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+@media (max-width: 640px) {
+  .pillGroup {
+    display: none;
+  }
+  .disclaimer {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

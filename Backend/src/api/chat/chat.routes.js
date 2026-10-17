@@ -1,12 +1,16 @@
 import express from "express";
+import {
+  createConversationController,
+  getConversationController,
+  clearConversationController,
+} from "./controller/chat.controller.js";
+import { optionalAuth } from "../../middleware/auth.middleware.js";
 
 const chatRouter = express.Router();
 
-import { createConversationController, getConversationController } from "./controller/chat.controller.js";
-
 // /api/chat/conversations
-chatRouter.post("/conversations", createConversationController);
-
-chatRouter.get("/conversations", getConversationController);
+chatRouter.post("/conversations", optionalAuth, createConversationController);
+chatRouter.get("/conversations", optionalAuth, getConversationController);
+chatRouter.delete("/conversations", optionalAuth, clearConversationController);
 
 export default chatRouter;

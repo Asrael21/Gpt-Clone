@@ -1,31 +1,53 @@
-import { createConversationService, getRecentConversationRows } from "../service/chat.service.js";
+import {
+  createConversationService,
+  getRecentConversationRows,
+  clearConversationsService,
+} from "../service/chat.service.js";
 
-export async function createConversationController(req,res){
-    try{
-        const { question } = req.body;
+export async function createConversationController(req, res, next) {
+  try {
+    const { question } = req.body;
+    const userId = req.user?.id || req.body.userId || null;
 
-        const result = await createConversationService(question);
-        
-        res.status(201).json({
-            success:true,
-            message: "Conversation posted successfully",
-            data:result,
-        });
-    } catch (error){
-        throw error;
-    }
+    const result = await createConversationService(question, userId);
+
+    res.status(201).json({
+      success: true,
+      message: "Conversation posted successfully",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
-export async function getConversationController(req,res){
-    try{
-        const result = await getRecentConversationRows(100);
-        res.status(200).json({
-            success:true,
-            message: "Conversation fetched successfully",
-            data:result,
-        });
-    } catch (error){
-        throw error;
-    }
+export async function getConversationController(req, res, next) {
+  try {
+    const userId = req.user?.id || req.query.userId || null;
+    const result = await getRecentConversationRows(100, userId);
+
+    res.status(200).json({
+      success: true,
+      message: "Conversation fetched successfully",
+      data: {
+        conversations: result,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
 }
-//postman @ 20:00 
+
+export async function clearConversationController(req, res, next) {
+  try {
+    const userId = req.user?.id || req.body?.userId || null;
+    await clearConversationsService(userId);
+
+    res.status(200).json({
+      success: true,
+      message: "Conversation history cleared successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+}

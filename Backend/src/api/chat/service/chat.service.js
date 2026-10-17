@@ -1,87 +1,157 @@
 import db from "../../../../db/db.config.js";
 import { GoogleGenAI } from "@google/genai";
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash-lite";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
-const geminiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY});
+let geminiClient = null;
+if (process.env.GEMINI_API_KEY) {
+  geminiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+}
 
-export const getRecentConversationRows = async (limit = 5) =>{
-    const normalizedLimit = Number.parseInt(limit, 10);
-    const safeLimit =
-    Number.isNaN(normalizedLimit) || normalizedLimit <= 0
-    ? 20 : normalizedLimit;
-    const [rows] = await db.execute(
-        `SELECT id, role, content, created_at
-        FROM conversations 
-        ORDER BY id DESC 
-        LIMIT ${safeLimit}`,
-    );
-    return rows.reverse();
+export const getMessageById = async (id) => {
+  const [rows] = await db.execute(
+    `SELECT id, role, content, token_count, user_id, created_at
+     FROM conversations
+     WHERE id = ?`,
+    [id]
+  );
+  return rows[0] || null;
+};
+
+export const getRecentConversationRows = async (limit = 100, userId = null) => {
+  const normalizedLimit = Number.parseInt(limit, 10);
+  const safeLimit =
+    Number.isNaN(normalizedLimit) || normalizedLimit <= 0 ? 50 : Math.min(normalizedLimit, 200);
+
+  let query = "";
+  let params = [];
+
+  if (userId) {
+    query = `SELECT id, role, content, token_count, user_id, created_at
+             FROM conversations
+             WHERE user_id = ?
+             ORDER BY id DESC
+             LIMIT ${safeLimit}`;
+    params = [userId];
+  } else {
+    query = `SELECT id, role, content, token_count, user_id, created_at
+             FROM conversations
+             WHERE user_id IS NULL
+             ORDER BY id DESC
+             LIMIT ${safeLimit}`;
+  }
+
+  const [rows] = await db.execute(query, params);
+  return rows.reverse();
 };
 
 const generateAssistantAnswer = async ({ historyRows, question }) => {
-    // Format history for Gemini startChat
-    const formattedHistory = historyRows.map(row => ({
+  if (!geminiClient) {
+    return {
+      text: "Gemini API key is not configured. Please provide a GEMINI_API_KEY in your Backend .env file.",
+      totalTokens: 0,
+    };
+  }
+
+  // Format valid history for Gemini startChat (must alternate or start with user)
+  const formattedHistory = [];
+  for (const row of historyRows) {
+    if (row.content && typeof row.content === "string" && row.content.trim()) {
+      formattedHistory.push({
         role: row.role === "assistant" ? "model" : "user",
         parts: [{ text: row.content }],
-    }));
+      });
+    }
+  }
 
-    // sample history format
-
+  try {
     const chat = geminiClient.chats.create({
-        model: GEMINI_MODEL,
-        config: {
-            maxOutputTokens: 1024,
-        },
-        history: formattedHistory,
+      model: GEMINI_MODEL,
+      config: {
+        maxOutputTokens: 2048,
+      },
+      history: formattedHistory,
     });
 
     const result = await chat.sendMessage({ message: question });
+    const text = result.text || "No response received.";
+    const totalTokens = result.usageMetadata?.totalTokenCount || 0;
+
     return {
-    text: result.text,
-    totalTokens: result.usageMetadata.totalTokenCount,
+      text,
+      totalTokens,
     };
+  } catch (apiError) {
+    console.error("Gemini API call failed:", apiError.message);
+    
+    // Attempt fallback with gemini-2.5-flash or direct answer
+    try {
+      const fallbackChat = geminiClient.chats.create({
+        model: "gemini-2.5-flash",
+        history: formattedHistory.slice(-4),
+      });
+      const fallbackResult = await fallbackChat.sendMessage({ message: question });
+      return {
+        text: fallbackResult.text || "No response received.",
+        totalTokens: fallbackResult.usageMetadata?.totalTokenCount || 0,
+      };
+    } catch (fallbackError) {
+      console.error("Fallback Gemini model also failed:", fallbackError.message);
+      return {
+        text: `I'm having trouble connecting to the AI service right now (${apiError.message}). Please try again in a moment.`,
+        totalTokens: 0,
+      };
+    }
+  }
 };
 
-
-
-export async function createConversationService(question) {
-    try {
-        // Validation
-        if (!question.trim()) {
-            const error = new Error("Question is required");
-            error.status = 400;
-            throw error;
-        }
-
-        // get recent conversation
-        const historyRows = await getRecentConversationRows(5);
-
-        // insert new conversation 
-        const [result] = await db.execute(
-            `INSER INTO conversations (content, role) VALUES (?, "user")`, 
-            [question],
-        );
-
-        const { text, totalTokens } = await generateAssistantAnswer({
-            historyRows,
-            question,
-        });
-
-        const createAssistantMessageResult = await db.execute(
-            `INSER INTO conversations (role, content, tken_count) VALUES (?, ?, ?)`, 
-            ["assistant", text, totalTokens],
-        );
-        const userConversation = await getMessageById(result.insertId);
-        const assistantConversation = await getMessageById(
-            createAssistantMessageResult.insertId,
-        );
-
-        return {
-            userConversation,
-            assistantConversation,
-        };
-    } catch (error){
-        throw error;
+export async function createConversationService(question, userId = null) {
+  try {
+    // Validation
+    if (!question || !question.trim()) {
+      const error = new Error("Question is required");
+      error.status = 400;
+      throw error;
     }
+
+    // Get recent conversation history for context (last 6 messages)
+    const historyRows = await getRecentConversationRows(6, userId);
+
+    // Insert user conversation
+    const [userInsertResult] = await db.execute(
+      `INSERT INTO conversations (content, role, user_id) VALUES (?, 'user', ?)`,
+      [question.trim(), userId || null]
+    );
+
+    // Generate assistant answer from Gemini
+    const { text, totalTokens } = await generateAssistantAnswer({
+      historyRows,
+      question: question.trim(),
+    });
+
+    // Insert assistant response
+    const [assistantInsertResult] = await db.execute(
+      `INSERT INTO conversations (role, content, token_count, user_id) VALUES ('assistant', ?, ?, ?)`,
+      [text, totalTokens, userId || null]
+    );
+
+    const userConversation = await getMessageById(userInsertResult.insertId);
+    const assistantConversation = await getMessageById(assistantInsertResult.insertId);
+
+    return {
+      userConversation,
+      assistantConversation,
+    };
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function clearConversationsService(userId = null) {
+  if (userId) {
+    await db.execute(`DELETE FROM conversations WHERE user_id = ?`, [userId]);
+  } else {
+    await db.execute(`DELETE FROM conversations WHERE user_id IS NULL`);
+  }
+  return true;
 }
