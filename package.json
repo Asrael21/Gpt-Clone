@@ -1,0 +1,17 @@
+{
+  "name": "gpt-clone",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:backend": "cd Backend && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "postinstall": "npm run install:backend && npm run install:frontend && npm run build:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "cd Backend && node index.js",
+    "dev:backend": "cd Backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
