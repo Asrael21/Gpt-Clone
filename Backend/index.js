@@ -52,7 +52,10 @@ app.use((req, res, next) => {
   const indexPath = path.join(frontendDist, "index.html");
   res.sendFile(indexPath, (err) => {
     if (err) {
-      next();
+      console.error("[SPA] Failed to send index.html:", err.message);
+      if (!res.headersSent) {
+        res.status(500).send(`Frontend build issue: ${err.message}. Please verify frontend/dist build.`);
+      }
     }
   });
 });
