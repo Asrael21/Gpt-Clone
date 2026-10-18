@@ -64,7 +64,7 @@ app.use(errorHandler);
 async function connectAndInitDatabase(retries = 5, delayMs = 3000) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const isUrlSet = !!(process.env.DATABASE_URL || process.env.MYSQL_URL);
+      const isUrlSet = !!(process.env.DATABASE_URL || process.env.MYSQL_PRIVATE_URL || process.env.MYSQL_URL);
       const host = process.env.MYSQLHOST || process.env.DB_HOST || "localhost";
       const user = process.env.MYSQLUSER || process.env.DB_USER || "(not set)";
       const database = process.env.MYSQLDATABASE || process.env.DB_DATABASE || "(not set)";
