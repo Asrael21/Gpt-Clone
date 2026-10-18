@@ -64,10 +64,11 @@ app.use(errorHandler);
 async function connectAndInitDatabase(retries = 5, delayMs = 3000) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
+      const isUrlSet = !!(process.env.DATABASE_URL || process.env.MYSQL_URL);
       const host = process.env.MYSQLHOST || process.env.DB_HOST || "localhost";
       const user = process.env.MYSQLUSER || process.env.DB_USER || "(not set)";
       const database = process.env.MYSQLDATABASE || process.env.DB_DATABASE || "(not set)";
-      console.log(`[DB] Attempting connection to MySQL (host: ${host}, user: ${user}, db: ${database}) [attempt ${attempt}/${retries}]...`);
+      console.log(`[DB] Attempting MySQL connection (usingUrl: ${isUrlSet}, host: ${host}, user: ${user}, db: ${database}) [attempt ${attempt}/${retries}]...`);
 
       const connection = await db.getConnection();
       console.log("Database connected successfully!");
@@ -77,7 +78,7 @@ async function connectAndInitDatabase(retries = 5, delayMs = 3000) {
       isDbConnected = true;
       return;
     } catch (error) {
-      console.error(`[DB] Connection attempt ${attempt} failed:`, error.message);
+      console.error(`[DB] Connection attempt ${attempt} failed:`, error.code || error.sqlMessage || error.message || error);
       if (attempt < retries) {
         console.log(`[DB] Retrying in ${delayMs / 1000}s...`);
         await new Promise((resolve) => setTimeout(resolve, delayMs));
